@@ -1,12 +1,12 @@
 NAME = philo
 CC = gcc
-CFLAGS = -Wall -Wextra -Werror
+CFLAGS = -Wall -Wextra -Werror -pthread
 ifdef DEBUG
 CFLAGS += -g3 -fsanitize=address
 endif
 
 HEADERS = philo.h
-FILES = main
+FILES = main parsing live
 INCS = .
 
 SRCS = $(addsuffix .c, $(addprefix srcs/, $(FILES)))
