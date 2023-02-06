@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <sys/time.h>
 #include <pthread.h>
+#include <string.h>
 
 /* parse errors*/
 
@@ -21,14 +22,15 @@
 #define PH_ARG_TSLEEP 3
 #define PH_ARG_XEAT 4
 
-struct s_args
+struct s_philo
 {
 	int				i;
 	int				*params;
+	int				*forks;
 	pthread_mutex_t	mutex;
 } ;
 
 int		parsing(int argc, char **argv, int *params);
-void	*live(struct s_args *args);
+void	*live(struct s_philo *args);
 
 #endif

@@ -6,19 +6,20 @@
 /*   By: skoulen <skoulen@student.42lausanne.ch>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/06 12:18:20 by skoulen           #+#    #+#             */
-/*   Updated: 2023/02/06 15:58:14 by skoulen          ###   ########.fr       */
+/*   Updated: 2023/02/06 17:11:42 by skoulen          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
-#include <limits.h>
 
 int	main(int argc, char **argv)
 {
 	int				params[5];
 	int				i;
+	int				*forks;
 	pthread_t		*threads;
 	pthread_mutex_t	mutex;
+	struct s_philo	*philosophers;
 
 	if (parsing(argc, argv, params))
 		return (1);
@@ -29,7 +30,13 @@ int	main(int argc, char **argv)
 	printf("time_to_sleep: %d\n", params[PH_ARG_TSLEEP]);
 	printf("number_of_times_each_philosopher_must_eat: %d\n", params[PH_ARG_XEAT]);
 
+	philosophers = malloc(sizeof(*philosophers) * params[PH_ARG_N]);
+
+	forks = malloc(sizeof(*forks) * params[PH_ARG_N]);
+	memset(forks, 1, sizeof(*forks) * params[PH_ARG_N]);
+
 	threads = malloc(sizeof(*threads) * params[PH_ARG_N]);
+
 	if (!threads)
 	{
 		printf("Could not allocate memory\n");
@@ -41,7 +48,12 @@ int	main(int argc, char **argv)
 	i = 0;
 	while (i < params[PH_ARG_N])
 	{
-		if (pthread_create(&threads[i], NULL, (void *(*)(void *))live, &(struct s_args){i, params, mutex}) != 0)
+		philosophers[i].i = i;
+		philosophers[i].params = params;
+		philosophers[i].forks = forks;
+		philosophers[i].mutex = mutex;
+
+		if (pthread_create(&threads[i], NULL, (void *(*)(void *))live, &philosophers[i]) != 0)
 		{
 			printf("Could not create thread\n");
 			//free threads??
