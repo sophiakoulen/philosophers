@@ -6,7 +6,7 @@ CFLAGS += -g3 -fsanitize=address
 endif
 
 HEADERS = philo.h
-FILES = main parsing live
+FILES = main parsing routine
 INCS = .
 
 SRCS = $(addsuffix .c, $(addprefix srcs/, $(FILES)))

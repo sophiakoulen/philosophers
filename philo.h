@@ -25,12 +25,12 @@
 struct s_philo
 {
 	int				i;
+	int				*death;
 	int				*params;
-	int				*forks;
-	pthread_mutex_t	mutex;
+	pthread_mutex_t	*forks;
 } ;
 
 int		parsing(int argc, char **argv, int *params);
-void	*live(struct s_philo *args);
+void	*routine(struct s_philo *args);
 
 #endif
