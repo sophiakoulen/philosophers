@@ -6,7 +6,7 @@
 /*   By: skoulen <skoulen@student.42lausanne.ch>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/06 12:35:46 by skoulen           #+#    #+#             */
-/*   Updated: 2023/02/15 13:28:10 by skoulen          ###   ########.fr       */
+/*   Updated: 2023/02/15 13:41:45 by skoulen          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,13 @@ static void	die(struct s_philo *args, int ts_birth, int next_action);
 #define PH_ACTION_THINK 3
 #define PH_ACTION_DIE 4
 
+/*
+	The philosophers life cycle implemented as a thread routine:
+
+	while we haven't been notified of another's philosophers death,
+	- check if we are dead
+	- update some internal state and lock / unlock mutexes if needed
+*/
 void	*routine(struct s_philo *args)
 {
 	int	ts_birth; // timestamp of birth
@@ -103,6 +110,15 @@ static void	log(int action, int i, int ts_birth)
 	printf("%d %d %s\n", ts_now() - ts_birth, i, msg);
 }
 
+/*
+	To avoid deadlocks, even philosophers will take first the fork on
+	their right and odd ones will take first the fork on their left.
+
+	After acquiring the lock, we check wether another philosopher has died,
+	because then we must not log the action.
+
+	update the timestamp of last meal.
+*/
 static void	eat(struct s_philo *args, int ts_birth, int *ts_last_meal, int *ts_stop_action)
 {
 	int	index1;
@@ -132,6 +148,9 @@ static void	eat(struct s_philo *args, int ts_birth, int *ts_last_meal, int *ts_s
 	*ts_stop_action = ts_now() + args->params[PH_ARG_TEAT];
 }
 
+/*
+	Unlock both forks we used to eat.
+*/
 static void	go_to_sleep(struct s_philo *args, int ts_birth, int *ts_stop_action)
 {
 	pthread_mutex_unlock(args->forks + args->i);
@@ -140,6 +159,10 @@ static void	go_to_sleep(struct s_philo *args, int ts_birth, int *ts_stop_action)
 	*ts_stop_action = ts_now() + args->params[PH_ARG_TSLEEP];
 }
 
+/*
+	If we were eating, unlock the forks that we got.
+	Tell the other philosophers this philosopher is dead.
+*/
 static void	die(struct s_philo *args, int ts_birth, int next_action)
 {
 	log(PH_ACTION_DIE, args->i, ts_birth);
