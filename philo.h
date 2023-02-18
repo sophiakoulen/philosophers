@@ -22,15 +22,31 @@
 #define PH_ARG_TSLEEP 3
 #define PH_ARG_XEAT 4
 
+/* actions */
+#define PH_ACTION_FORK 0
+#define PH_ACTION_EAT 1
+#define PH_ACTION_SLEEP 2
+#define PH_ACTION_THINK 3
+#define PH_ACTION_DIE 4
+
 struct s_philo
 {
 	int				i;
-	int				*death;
 	int				*params;
 	pthread_mutex_t	*forks;
+	int				ts_birth;
+	pthread_mutex_t	*last_meal_lock;
+	int				ts_last_meal;
+	pthread_mutex_t	*meal_count_lock;
+	int				meal_count;
+	pthread_mutex_t	*stop_lock;
+	int				*stop;
 } ;
 
 int		parsing(int argc, char **argv, int *params);
 void	*routine(struct s_philo *args);
+void	log_action(int action, int i, int ts_birth);
+int		ts_now(void);
+int		next_index(int i, int n);
 
 #endif
