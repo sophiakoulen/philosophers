@@ -6,7 +6,7 @@
 /*   By: skoulen <skoulen@student.42lausanne.ch>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/06 12:18:16 by skoulen           #+#    #+#             */
-/*   Updated: 2023/02/06 12:34:05 by skoulen          ###   ########.fr       */
+/*   Updated: 2023/02/18 11:01:23 by skoulen          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,7 +47,7 @@ static int	check_argc(int argc)
 	if (argc != 5 && argc != 6)
 	{
 		printf("usage: ./philo number_of_philosophers time_to_die time_to_eat\
-			time_to_sleep [number_of_times_each_philosopher_must_eat");
+ time_to_sleep [number_of_times_each_philosopher_must_eat");
 		return (1);
 	}
 	return (0);
