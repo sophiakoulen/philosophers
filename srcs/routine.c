@@ -6,7 +6,7 @@
 /*   By: skoulen <skoulen@student.42lausanne.ch>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/06 12:35:46 by skoulen           #+#    #+#             */
-/*   Updated: 2023/02/20 12:48:15 by skoulen          ###   ########.fr       */
+/*   Updated: 2023/02/20 15:00:24 by skoulen          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,10 +18,10 @@
 // number of philosophers
 #define N args->params[0]
 
-static void	eat(struct s_philo *args, int *ts_stop_action);
-static void	go_to_sleep(struct s_philo *args, int *ts_stop_action);
-static int	is_alive(struct s_philo *args);
-static void	die(struct s_philo *args, int next_action);
+static void	eat(t_philo *args, int *ts_stop_action);
+static void	go_to_sleep(t_philo *args, int *ts_stop_action);
+static int	is_alive(t_philo *args);
+static void	die(t_philo *args, int next_action);
 
 /*
 	The philosophers life cycle implemented as a thread routine:
@@ -30,7 +30,7 @@ static void	die(struct s_philo *args, int next_action);
 	- check if we are dead
 	- update some internal state and lock / unlock mutexes if needed
 */
-void	*routine(struct s_philo *args)
+void	*routine(t_philo *args)
 {
 	int	ts_stop_action; //timestamp we will be finished doing our current action
 	int	next_action; // next action we need to do
@@ -71,7 +71,7 @@ void	*routine(struct s_philo *args)
 
 	update the timestamp of last meal.
 */
-static void	eat(struct s_philo *args, int *ts_stop_action)
+static void	eat(t_philo *args, int *ts_stop_action)
 {
 	log_action(PH_ACTION_FORK, I, args->ts_birth);
 	if (args->params[PH_ARG_N] != 1)
@@ -94,7 +94,7 @@ static void	eat(struct s_philo *args, int *ts_stop_action)
 /*
 	Unlock both forks we used to eat.
 */
-static void	go_to_sleep(struct s_philo *args, int *ts_stop_action)
+static void	go_to_sleep(t_philo *args, int *ts_stop_action)
 {
 	pthread_mutex_lock(args->locks->meal_count + I);
 	args->meal_count++;
@@ -105,20 +105,20 @@ static void	go_to_sleep(struct s_philo *args, int *ts_stop_action)
 	*ts_stop_action = ts_now() + args->params[PH_ARG_TSLEEP];
 }
 
-static int	is_alive(struct s_philo *args)
+static int	is_alive(t_philo *args)
 {
 	int	ret;
 
-	pthread_mutex_lock(args->locks->stop);
-	ret = !*args->stop;
-	pthread_mutex_unlock(args->locks->stop);
+	pthread_mutex_lock(args->stop->lock);
+	ret = !*args->stop->value;
+	pthread_mutex_unlock(args->stop->lock);
 	return (ret);
 }
 
 /*
 	If we were eating, unlock the forks that we got.
 */
-static void	die(struct s_philo *args, int next_action)
+static void	die(t_philo *args, int next_action)
 {
 	if (next_action == PH_ACTION_SLEEP && N != 0)
 	{

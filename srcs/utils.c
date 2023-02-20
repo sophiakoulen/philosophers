@@ -6,7 +6,7 @@
 /*   By: skoulen <skoulen@student.42lausanne.ch>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/18 11:49:32 by skoulen           #+#    #+#             */
-/*   Updated: 2023/02/20 11:20:43 by skoulen          ###   ########.fr       */
+/*   Updated: 2023/02/20 13:53:15 by skoulen          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,7 @@ void	log_action(int action, int i, int ts_birth)
 
 int	ts_now(void)
 {
-	struct	timeval t;
+	struct timeval	t;
 
 	gettimeofday(&t, NULL);
 	return (t.tv_sec * 1000 + t.tv_usec / 1000);

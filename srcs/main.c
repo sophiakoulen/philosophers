@@ -6,76 +6,59 @@
 /*   By: skoulen <skoulen@student.42lausanne.ch>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/06 12:18:20 by skoulen           #+#    #+#             */
-/*   Updated: 2023/02/20 12:50:16 by skoulen          ###   ########.fr       */
+/*   Updated: 2023/02/20 14:59:14 by skoulen          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
 
-static void	init_locks(int n, struct s_locks *locks);
-static void	cleanup_mutexes(int n, struct s_locks *locks);
-static void	join_and_cleanup_threads(int n, pthread_t *threads);
+static pthread_t		*spawn_philos(t_philo *philos, int *params);
+static void				cleanup_mutexes(int n, struct s_locks *locks);
+static void				join_and_cleanup_threads(int n, pthread_t *threads);
+static void				destroy_philos(int n, t_philo *philosophers);
 
 int	main(int argc, char **argv)
 {
 	int				params[5];
-	int				i;
-	struct s_philo	*philosophers;
+	t_philo			*philosophers;
 	pthread_t		*threads;
-	struct s_locks	locks;
-	int				stop;
+	t_protected		stop;
 
 	if (parsing(argc, argv, params))
 		return (1);
-	philosophers = malloc(sizeof(*philosophers) * params[PH_ARG_N]);
-	threads = malloc(sizeof(*threads) * params[PH_ARG_N]);
-
-	init_locks(params[PH_ARG_N], &locks);
-
-	stop = 0;
-
-	i = 0;
-	int birth = ts_now();
-	while (i < params[PH_ARG_N])
-	{
-		philosophers[i] = (struct s_philo){i,
-			params,
-			birth, //birth
-			birth, //last_meal
-			0, //meal_count
-			&stop, //must we stop?
-			&locks}; // all the locks we need
-		if (pthread_create(&threads[i], NULL, (void *(*)(void *))routine, &philosophers[i]) != 0)
-		{
-			printf("Could not create thread\n");
-			return (1);
-		}
-		i++;
-	}
-	watch_philosophers(params, philosophers, locks.stop, &stop);
+	if (init_stop_lock(&stop) != 0)
+		return (2);
+	philosophers = init_philos(params, &stop);
+	if (!philosophers)
+		return (2);
+	threads = spawn_philos(philosophers, params);
+	if (!threads)
+		return (2);
+	watch_philos(params, philosophers, &stop);
 	join_and_cleanup_threads(params[PH_ARG_N], threads);
-	cleanup_mutexes(params[PH_ARG_N], &locks);
-	free(philosophers);
+	destroy_philos(params[PH_ARG_N], philosophers);
 	return (0);
 }
 
-static void	init_locks(int n, struct s_locks *locks)
+static pthread_t	*spawn_philos(t_philo *philos, int *params)
 {
-	int	i;
+	pthread_t	*threads;
+	int			i;
 
-	locks->forks = malloc(sizeof(*locks->forks) * n);
-	locks->last_meal = malloc(sizeof(*locks->last_meal) * n);
-	locks->meal_count = malloc(sizeof(*locks->meal_count) * n);
-	locks->stop = malloc(sizeof(*locks->stop) * 1);
+	threads = malloc(sizeof(*threads) * params[PH_ARG_N]);
+	if (!threads)
+		return (NULL);
 	i = 0;
-	while (i < n)
+	while (i < params[PH_ARG_N])
 	{
-		pthread_mutex_init(locks->forks + i, NULL);
-		pthread_mutex_init(locks->last_meal + i, NULL);
-		pthread_mutex_init(locks->meal_count + i, NULL);
+		if (pthread_create(&threads[i], NULL,
+				(void *(*)(void *))routine, &philos[i]) != 0)
+		{
+			printf("Could not create thread\n");
+		}
 		i++;
 	}
-	pthread_mutex_init(locks->stop, NULL);
+	return (threads);
 }
 
 static void	cleanup_mutexes(int n, struct s_locks *locks)
@@ -97,11 +80,20 @@ static void	cleanup_mutexes(int n, struct s_locks *locks)
 			printf("could not destroy mutex, error: %d\n", ret);
 		i++;
 	}
-	pthread_mutex_destroy(locks->stop);
 	free(locks->forks);
 	free(locks->last_meal);
 	free(locks->meal_count);
-	free(locks->stop);
+}
+
+static void	destroy_philos(int n, t_philo *philosophers)
+{
+	struct s_locks	*locks;
+
+	if (n == 0)
+		return ;
+	locks = philosophers[0].locks;
+	cleanup_mutexes(n, locks);
+	free(philosophers);
 }
 
 static void	join_and_cleanup_threads(int n, pthread_t *threads)
