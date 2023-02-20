@@ -6,7 +6,7 @@ CFLAGS += -g3 -fsanitize=thread
 endif
 
 HEADERS = philo.h
-FILES = main parsing routine utils
+FILES = main parsing routine utils check
 INCS = .
 
 SRCS = $(addsuffix .c, $(addprefix srcs/, $(FILES)))

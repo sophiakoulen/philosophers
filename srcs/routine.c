@@ -6,16 +6,22 @@
 /*   By: skoulen <skoulen@student.42lausanne.ch>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/06 12:35:46 by skoulen           #+#    #+#             */
-/*   Updated: 2023/02/18 14:57:42 by skoulen          ###   ########.fr       */
+/*   Updated: 2023/02/20 12:48:15 by skoulen          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
 
+// index of the philosopher
+#define I args->i
+
+// number of philosophers
+#define N args->params[0]
+
 static void	eat(struct s_philo *args, int *ts_stop_action);
 static void	go_to_sleep(struct s_philo *args, int *ts_stop_action);
 static int	is_alive(struct s_philo *args);
-//static void	die(struct s_philo *args, int ts_birth, int next_action);
+static void	die(struct s_philo *args, int next_action);
 
 /*
 	The philosophers life cycle implemented as a thread routine:
@@ -52,11 +58,7 @@ void	*routine(struct s_philo *args)
 			next_action = PH_ACTION_EAT;
 		}
 	}
-	if (next_action == PH_ACTION_SLEEP)
-	{
-		pthread_mutex_unlock(args->forks + args->i);
-		pthread_mutex_unlock(args->forks + next_index(args->i, args->params[PH_ARG_N]));
-	}
+	die(args, next_action);
 	return (NULL);
 }
 
@@ -71,29 +73,22 @@ void	*routine(struct s_philo *args)
 */
 static void	eat(struct s_philo *args, int *ts_stop_action)
 {
-	int	index1;
-	int	index2;
-
-	if (args->i % 2)
+	log_action(PH_ACTION_FORK, I, args->ts_birth);
+	if (args->params[PH_ARG_N] != 1)
 	{
-		index1 = args->i;
-		index2 = next_index(args->i, args->params[PH_ARG_N]);
-
+		pthread_mutex_lock(args->locks->forks + first_index(I, N));
+		pthread_mutex_lock(args->locks->forks + second_index(I, N));
+		log_action(PH_ACTION_FORK, I, args->ts_birth);
+		log_action(PH_ACTION_EAT, I, args->ts_birth);
+		pthread_mutex_lock(args->locks->last_meal + I);
+		args->ts_last_meal = ts_now();
+		pthread_mutex_unlock(args->locks->last_meal + I);
+		*ts_stop_action = ts_now() + args->params[PH_ARG_TEAT];
 	}
 	else
 	{
-		index2 = args->i;
-		index1 = next_index(args->i, args->params[PH_ARG_N]);
+		*ts_stop_action = 2147483647;
 	}
-	pthread_mutex_lock(args->forks + index1);
-	log_action(PH_ACTION_FORK, args->i, args->ts_birth);
-	pthread_mutex_lock(args->forks + index2);
-	log_action(PH_ACTION_FORK, args->i, args->ts_birth);
-	log_action(PH_ACTION_EAT, args->i, args->ts_birth);
-	pthread_mutex_lock(args->last_meal_lock);
-	args->ts_last_meal = ts_now();
-	pthread_mutex_unlock(args->last_meal_lock);
-	*ts_stop_action = ts_now() + args->params[PH_ARG_TEAT];
 }
 
 /*
@@ -101,11 +96,11 @@ static void	eat(struct s_philo *args, int *ts_stop_action)
 */
 static void	go_to_sleep(struct s_philo *args, int *ts_stop_action)
 {
-	pthread_mutex_lock(args->meal_count_lock);
+	pthread_mutex_lock(args->locks->meal_count + I);
 	args->meal_count++;
-	pthread_mutex_unlock(args->meal_count_lock);
-	pthread_mutex_unlock(args->forks + args->i);
-	pthread_mutex_unlock(args->forks + next_index(args->i, args->params[PH_ARG_N]));
+	pthread_mutex_unlock(args->locks->meal_count + I);
+	pthread_mutex_unlock(args->locks->forks + I);
+	pthread_mutex_unlock(args->locks->forks + next_index(I, N));
 	log_action(PH_ACTION_SLEEP, args->i, args->ts_birth);
 	*ts_stop_action = ts_now() + args->params[PH_ARG_TSLEEP];
 }
@@ -114,25 +109,20 @@ static int	is_alive(struct s_philo *args)
 {
 	int	ret;
 
-	pthread_mutex_lock(args->stop_lock);
+	pthread_mutex_lock(args->locks->stop);
 	ret = !*args->stop;
-	pthread_mutex_unlock(args->stop_lock);
+	pthread_mutex_unlock(args->locks->stop);
 	return (ret);
 }
 
 /*
 	If we were eating, unlock the forks that we got.
-	Tell the other philosophers this philosopher is dead.
 */
-/*
 static void	die(struct s_philo *args, int next_action)
 {
-	log(PH_ACTION_DIE, args->i, ts_birth);
-	if (next_action == PH_ACTION_SLEEP)
+	if (next_action == PH_ACTION_SLEEP && N != 0)
 	{
-		pthread_mutex_unlock(args->forks + args->i);
-		pthread_mutex_unlock(args->forks + next_index(args->i, args->params[PH_ARG_N]));
+		pthread_mutex_unlock(args->locks->forks + I);
+		pthread_mutex_unlock(args->locks->forks + next_index(I, N));
 	}
-	*args->death = 1;
 }
-*/

@@ -33,14 +33,19 @@ struct s_philo
 {
 	int				i;
 	int				*params;
-	pthread_mutex_t	*forks;
 	int				ts_birth;
-	pthread_mutex_t	*last_meal_lock;
 	int				ts_last_meal;
-	pthread_mutex_t	*meal_count_lock;
 	int				meal_count;
-	pthread_mutex_t	*stop_lock;
 	int				*stop;
+	struct s_locks	*locks;
+} ;
+
+struct s_locks
+{
+	pthread_mutex_t	*forks;
+	pthread_mutex_t	*last_meal;
+	pthread_mutex_t	*meal_count;
+	pthread_mutex_t	*stop;
 } ;
 
 int		parsing(int argc, char **argv, int *params);
@@ -48,5 +53,8 @@ void	*routine(struct s_philo *args);
 void	log_action(int action, int i, int ts_birth);
 int		ts_now(void);
 int		next_index(int i, int n);
+int		first_index(int i, int n);
+int		second_index(int i, int n);
+void	watch_philosophers(int *params, struct s_philo *philosophers, pthread_mutex_t *stop_lock, int *stop);
 
 #endif
