@@ -6,59 +6,49 @@
 /*   By: skoulen <skoulen@student.42lausanne.ch>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/06 12:35:46 by skoulen           #+#    #+#             */
-/*   Updated: 2023/02/20 15:00:24 by skoulen          ###   ########.fr       */
+/*   Updated: 2023/02/21 14:08:14 by skoulen          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
 
-// index of the philosopher
-#define I args->i
-
-// number of philosophers
-#define N args->params[0]
-
 static void	eat(t_philo *args, int *ts_stop_action);
 static void	go_to_sleep(t_philo *args, int *ts_stop_action);
-static int	is_alive(t_philo *args);
-static void	die(t_philo *args, int next_action);
+static int	simulation_continues(t_philo *args);
+static void	unlock_all(t_philo *args, int next_action);
 
 /*
 	The philosophers life cycle implemented as a thread routine:
 
-	while we haven't been notified of another's philosophers death,
-	- check if we are dead
-	- update some internal state and lock / unlock mutexes if needed
+	`ts_stop_action' tells us when we need to change the action we're doing.
+	`next_action' tells us which is the action we need to perform next.
+
+	while we haven't been notified that the simulation must finish,
+		- check if we're busy with an action (thinking or sleeping)
+		- if not, we need to change our state and do the corresponding actions
+
+	Before we exit the function, we make sure any locked mutexes are unlocked.
 */
 void	*routine(t_philo *args)
 {
-	int	ts_stop_action; //timestamp we will be finished doing our current action
-	int	next_action; // next action we need to do
+	int	ts_stop_action;
+	int	next_action;
 
 	ts_stop_action = args->ts_birth;
-	next_action = PH_ACTION_EAT; //first thing we need to do is eat
-	while (is_alive(args))
+	next_action = PH_ACTION_EAT;
+	while (simulation_continues(args))
 	{
-		if (ts_stop_action > ts_now()) //if we're already doing an action
+		if (ts_stop_action > ts_now())
 			continue ;
 		if (next_action == PH_ACTION_EAT)
-		{
 			eat(args, &ts_stop_action);
-			//this blocks the execution => problem: what if we die here??
-			next_action = PH_ACTION_SLEEP;
-		}
 		else if (next_action == PH_ACTION_SLEEP)
-		{
 			go_to_sleep(args, &ts_stop_action);
-			next_action = PH_ACTION_THINK;
-		}
 		else
-		{
 			log_action(PH_ACTION_THINK, args->i, args->ts_birth);
-			next_action = PH_ACTION_EAT;
-		}
+		next_action = (next_action + 1) % 4;
 	}
-	die(args, next_action);
+	unlock_all(args, next_action);
 	return (NULL);
 }
 
@@ -67,45 +57,69 @@ void	*routine(t_philo *args)
 	their right and odd ones will take first the fork on their left.
 
 	After acquiring the lock, we check wether another philosopher has died,
-	because then we must not log the action.
+	because then we must not log the actions.
 
 	update the timestamp of last meal.
+
+	If there is only one philosopher, we do not acquire the lock, since else
+	it's complicated to prevent a deadlock, and instead set time of finishing
+	this action to INT_MAX.
 */
 static void	eat(t_philo *args, int *ts_stop_action)
 {
-	log_action(PH_ACTION_FORK, I, args->ts_birth);
-	if (args->params[PH_ARG_N] != 1)
+	int	i;
+	int	n;
+
+	i = args->i;
+	n = args->params[PH_ARG_N];
+	if (n != 1)
 	{
-		pthread_mutex_lock(args->locks->forks + first_index(I, N));
-		pthread_mutex_lock(args->locks->forks + second_index(I, N));
-		log_action(PH_ACTION_FORK, I, args->ts_birth);
-		log_action(PH_ACTION_EAT, I, args->ts_birth);
-		pthread_mutex_lock(args->locks->last_meal + I);
+		pthread_mutex_lock(args->locks->forks + first_index(i, n));
+		if (simulation_continues(args))
+			log_action(PH_ACTION_FORK, i, args->ts_birth);
+		pthread_mutex_lock(args->locks->forks + second_index(i, n));
+		if (simulation_continues(args))
+			log_action(PH_ACTION_FORK, i, args->ts_birth);
+		if (simulation_continues(args))
+			log_action(PH_ACTION_EAT, i, args->ts_birth);
+		pthread_mutex_lock(args->locks->last_meal + i);
 		args->ts_last_meal = ts_now();
-		pthread_mutex_unlock(args->locks->last_meal + I);
+		pthread_mutex_unlock(args->locks->last_meal + i);
 		*ts_stop_action = ts_now() + args->params[PH_ARG_TEAT];
 	}
 	else
 	{
+		log_action(PH_ACTION_FORK, i, args->ts_birth);
 		*ts_stop_action = 2147483647;
 	}
 }
 
 /*
-	Unlock both forks we used to eat.
+	Increase the meal counter. Unlock both forks we used to eat.
+	log the fact that we are sleeping. set the time of finish to now +
+	time_to_sleep.
 */
 static void	go_to_sleep(t_philo *args, int *ts_stop_action)
 {
-	pthread_mutex_lock(args->locks->meal_count + I);
+	int	i;
+	int	n;
+
+	i = args->i;
+	n = args->params[PH_ARG_N];
+	pthread_mutex_lock(args->locks->meal_count + i);
 	args->meal_count++;
-	pthread_mutex_unlock(args->locks->meal_count + I);
-	pthread_mutex_unlock(args->locks->forks + I);
-	pthread_mutex_unlock(args->locks->forks + next_index(I, N));
-	log_action(PH_ACTION_SLEEP, args->i, args->ts_birth);
+	pthread_mutex_unlock(args->locks->meal_count + i);
+	pthread_mutex_unlock(args->locks->forks + first_index(i, n));
+	pthread_mutex_unlock(args->locks->forks + second_index(i, n));
+	log_action(PH_ACTION_SLEEP, i, args->ts_birth);
 	*ts_stop_action = ts_now() + args->params[PH_ARG_TSLEEP];
 }
 
-static int	is_alive(t_philo *args)
+/*
+	Safely check if the main thread has communicated that the simulation
+	must end.
+*/
+static int	simulation_continues(t_philo *args)
 {
 	int	ret;
 
@@ -118,11 +132,16 @@ static int	is_alive(t_philo *args)
 /*
 	If we were eating, unlock the forks that we got.
 */
-static void	die(t_philo *args, int next_action)
+static void	unlock_all(t_philo *args, int next_action)
 {
-	if (next_action == PH_ACTION_SLEEP && N != 0)
+	int	i;
+	int	n;
+
+	i = args->i;
+	n = args->params[PH_ARG_N];
+	if (next_action == PH_ACTION_SLEEP && n != 1)
 	{
-		pthread_mutex_unlock(args->locks->forks + I);
-		pthread_mutex_unlock(args->locks->forks + next_index(I, N));
+		pthread_mutex_unlock(args->locks->forks + first_index(i, n));
+		pthread_mutex_unlock(args->locks->forks + second_index(i, n));
 	}
 }

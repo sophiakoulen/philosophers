@@ -6,7 +6,7 @@
 /*   By: skoulen <skoulen@student.42lausanne.ch>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/20 13:39:04 by skoulen           #+#    #+#             */
-/*   Updated: 2023/02/20 15:01:13 by skoulen          ###   ########.fr       */
+/*   Updated: 2023/02/21 13:53:28 by skoulen          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,11 +35,11 @@
 # define PH_ARG_XEAT 4
 
 /* actions */
-# define PH_ACTION_FORK 0
-# define PH_ACTION_EAT 1
-# define PH_ACTION_SLEEP 2
-# define PH_ACTION_THINK 3
-# define PH_ACTION_DIE 4
+# define PH_ACTION_EAT 0
+# define PH_ACTION_SLEEP 1
+# define PH_ACTION_THINK 2
+# define PH_ACTION_DIE 3
+# define PH_ACTION_FORK 4
 
 typedef struct s_protected
 {

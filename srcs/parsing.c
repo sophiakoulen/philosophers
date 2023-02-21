@@ -6,7 +6,7 @@
 /*   By: skoulen <skoulen@student.42lausanne.ch>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/06 12:18:16 by skoulen           #+#    #+#             */
-/*   Updated: 2023/02/18 11:01:23 by skoulen          ###   ########.fr       */
+/*   Updated: 2023/02/21 14:18:29 by skoulen          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,9 +32,9 @@ int	parsing(int argc, char **argv, int *params)
 			break ;
 		}
 		err = ft_atoi(argv[i + 1], &params[i]);
-		if (err)
+		if (err || (params[i] == 0 && i != 0))
 		{
-			printf("%s: error\n", argv[i + 1]);
+			printf("%s: invalid argument\n", argv[i + 1]);
 			return (1);
 		}
 		i++;
@@ -53,6 +53,9 @@ static int	check_argc(int argc)
 	return (0);
 }
 
+/*
+	atoi that checks for overflow
+*/
 static int	ft_atoi(char *str, int *res)
 {
 	int	tmp;
