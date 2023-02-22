@@ -6,7 +6,7 @@
 /*   By: skoulen <skoulen@student.42lausanne.ch>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/06 12:18:20 by skoulen           #+#    #+#             */
-/*   Updated: 2023/02/22 11:55:11 by skoulen          ###   ########.fr       */
+/*   Updated: 2023/02/22 16:56:02 by skoulen          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 static int	spawn_philos(t_philo *philos, int *params, pthread_t **threads);
 static int	cleanup_mutexes(int n, struct s_locks *locks);
 static int	join_and_cleanup_threads(int n, pthread_t *threads);
+static int	safe_mutex_destroy(pthread_mutex_t *m);
 
 int	main(int argc, char **argv)
 {
@@ -51,7 +52,7 @@ static int	spawn_philos(t_philo *philos, int *params, pthread_t **threads)
 	while (i < params[PH_ARG_N])
 	{
 		if (pthread_create(&(*threads)[i], NULL,
-				(void *(*)(void *))routine, &philos[i]) != 0)
+			(void *(*)(void *))routine, &philos[i]) != 0)
 		{
 			printf("Could not create thread\n");
 			return (-1);
@@ -64,34 +65,25 @@ static int	spawn_philos(t_philo *philos, int *params, pthread_t **threads)
 static int	cleanup_mutexes(int n, struct s_locks *locks)
 {
 	int	i;
-	int	ret;
 
 	i = 0;
 	while (i < n)
 	{
-		ret = pthread_mutex_destroy(locks->forks + i);
-		if (ret != 0)
-		{
-			printf("could not destroy mutex, error: %d\n", ret);
+		if (safe_mutex_destroy(locks->forks + i) != 0)
 			return (-1);
-		}
-		ret = pthread_mutex_destroy(&locks->last_meal[i].lock);
-		if (ret != 0)
-		{
-			printf("could not destroy mutex, error: %d\n", ret);
+		if (safe_mutex_destroy(&locks->last_meal[i].lock) != 0)
 			return (-1);
-		}
-		ret = pthread_mutex_destroy(&locks->meal_count[i].lock);
-		if (ret != 0)
-		{
-			printf("could not destroy mutex, error: %d\n", ret);
+		free(locks->last_meal[i].value);
+		if (safe_mutex_destroy(&locks->meal_count[i].lock) != 0)
 			return (-1);
-		}
+		free(locks->meal_count[i].value);
 		i++;
 	}
 	free(locks->forks);
 	free(locks->last_meal);
 	free(locks->meal_count);
+	safe_mutex_destroy(&locks->stop.lock);
+	free(locks->stop.value);
 	return (0);
 }
 
@@ -110,5 +102,18 @@ static int	join_and_cleanup_threads(int n, pthread_t *threads)
 		i++;
 	}
 	free(threads);
+	return (0);
+}
+
+static int	safe_mutex_destroy(pthread_mutex_t *m)
+{
+	int	ret;
+
+	ret = pthread_mutex_destroy(m);
+	if (ret != 0)
+	{
+		printf("failed to destroy mutex: error code: %d", ret);
+		return (-1);
+	}
 	return (0);
 }
