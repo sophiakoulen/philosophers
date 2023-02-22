@@ -6,7 +6,7 @@
 /*   By: skoulen <skoulen@student.42lausanne.ch>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/06 12:35:46 by skoulen           #+#    #+#             */
-/*   Updated: 2023/02/22 14:15:48 by skoulen          ###   ########.fr       */
+/*   Updated: 2023/02/22 17:10:33 by skoulen          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,7 +46,7 @@ void	*routine(t_philo *args)
 			go_to_sleep(args, &ts_stop_action);
 		else
 			log_action(PH_ACTION_THINK, args->i, args->birth);
-		next_action = (next_action + 1) % 4;
+		next_action = (next_action + 1) % 3;
 	}
 	unlock_all(args, next_action);
 	return (NULL);
