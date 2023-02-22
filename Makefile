@@ -1,7 +1,12 @@
 NAME = philo
 CC = gcc
 CFLAGS = -Wall -Wextra -Werror -pthread
-ifdef DEBUG
+
+ifeq ($(DEBUG), addr)
+CFLAGS += -g3 -fsanitize=address
+endif
+
+ifeq ($(DEBUG), thread)
 CFLAGS += -g3 -fsanitize=thread
 endif
 

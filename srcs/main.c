@@ -6,62 +6,62 @@
 /*   By: skoulen <skoulen@student.42lausanne.ch>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/06 12:18:20 by skoulen           #+#    #+#             */
-/*   Updated: 2023/02/20 14:59:14 by skoulen          ###   ########.fr       */
+/*   Updated: 2023/02/22 11:55:11 by skoulen          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
 
-static pthread_t		*spawn_philos(t_philo *philos, int *params);
-static void				cleanup_mutexes(int n, struct s_locks *locks);
-static void				join_and_cleanup_threads(int n, pthread_t *threads);
-static void				destroy_philos(int n, t_philo *philosophers);
+static int	spawn_philos(t_philo *philos, int *params, pthread_t **threads);
+static int	cleanup_mutexes(int n, struct s_locks *locks);
+static int	join_and_cleanup_threads(int n, pthread_t *threads);
 
 int	main(int argc, char **argv)
 {
 	int				params[5];
 	t_philo			*philosophers;
 	pthread_t		*threads;
-	t_protected		stop;
+	struct s_locks	locks;
 
-	if (parsing(argc, argv, params))
+	if (parsing(argc, argv, params) != 0)
 		return (1);
-	if (init_stop_lock(&stop) != 0)
+	if (init_locks(params[PH_ARG_N], &locks) != 0)
 		return (2);
-	philosophers = init_philos(params, &stop);
-	if (!philosophers)
-		return (2);
-	threads = spawn_philos(philosophers, params);
-	if (!threads)
-		return (2);
-	watch_philos(params, philosophers, &stop);
-	join_and_cleanup_threads(params[PH_ARG_N], threads);
-	destroy_philos(params[PH_ARG_N], philosophers);
+	if (init_philos(params, &locks, &philosophers) != 0)
+		return (3);
+	if (spawn_philos(philosophers, params, &threads) != 0)
+		return (4);
+	watch_philos(params, philosophers, &locks.stop);
+	if (join_and_cleanup_threads(params[PH_ARG_N], threads) != 0)
+		return (5);
+	if (cleanup_mutexes(params[PH_ARG_N], &locks) != 0)
+		return (6);
+	free(philosophers);
 	return (0);
 }
 
-static pthread_t	*spawn_philos(t_philo *philos, int *params)
+static int	spawn_philos(t_philo *philos, int *params, pthread_t **threads)
 {
-	pthread_t	*threads;
 	int			i;
 
-	threads = malloc(sizeof(*threads) * params[PH_ARG_N]);
-	if (!threads)
-		return (NULL);
+	*threads = malloc(sizeof(*threads) * params[PH_ARG_N]);
+	if (!*threads)
+		return (-1);
 	i = 0;
 	while (i < params[PH_ARG_N])
 	{
-		if (pthread_create(&threads[i], NULL,
+		if (pthread_create(&(*threads)[i], NULL,
 				(void *(*)(void *))routine, &philos[i]) != 0)
 		{
 			printf("Could not create thread\n");
+			return (-1);
 		}
 		i++;
 	}
-	return (threads);
+	return (0);
 }
 
-static void	cleanup_mutexes(int n, struct s_locks *locks)
+static int	cleanup_mutexes(int n, struct s_locks *locks)
 {
 	int	i;
 	int	ret;
@@ -71,32 +71,31 @@ static void	cleanup_mutexes(int n, struct s_locks *locks)
 	{
 		ret = pthread_mutex_destroy(locks->forks + i);
 		if (ret != 0)
+		{
 			printf("could not destroy mutex, error: %d\n", ret);
-		ret = pthread_mutex_destroy(locks->last_meal + i);
+			return (-1);
+		}
+		ret = pthread_mutex_destroy(&locks->last_meal[i].lock);
 		if (ret != 0)
+		{
 			printf("could not destroy mutex, error: %d\n", ret);
-		ret = pthread_mutex_destroy(locks->meal_count + i);
+			return (-1);
+		}
+		ret = pthread_mutex_destroy(&locks->meal_count[i].lock);
 		if (ret != 0)
+		{
 			printf("could not destroy mutex, error: %d\n", ret);
+			return (-1);
+		}
 		i++;
 	}
 	free(locks->forks);
 	free(locks->last_meal);
 	free(locks->meal_count);
+	return (0);
 }
 
-static void	destroy_philos(int n, t_philo *philosophers)
-{
-	struct s_locks	*locks;
-
-	if (n == 0)
-		return ;
-	locks = philosophers[0].locks;
-	cleanup_mutexes(n, locks);
-	free(philosophers);
-}
-
-static void	join_and_cleanup_threads(int n, pthread_t *threads)
+static int	join_and_cleanup_threads(int n, pthread_t *threads)
 {
 	int	i;
 
@@ -106,8 +105,10 @@ static void	join_and_cleanup_threads(int n, pthread_t *threads)
 		if (pthread_join(threads[i], NULL) != 0)
 		{
 			printf("Could not join thread\n");
+			return (-1);
 		}
 		i++;
 	}
 	free(threads);
+	return (0);
 }

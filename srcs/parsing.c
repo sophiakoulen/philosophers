@@ -6,7 +6,7 @@
 /*   By: skoulen <skoulen@student.42lausanne.ch>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/06 12:18:16 by skoulen           #+#    #+#             */
-/*   Updated: 2023/02/21 14:18:29 by skoulen          ###   ########.fr       */
+/*   Updated: 2023/02/22 10:31:43 by skoulen          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,7 @@ int	parsing(int argc, char **argv, int *params)
 			break ;
 		}
 		err = ft_atoi(argv[i + 1], &params[i]);
-		if (err || (params[i] == 0 && i != 0))
+		if (err || params[i] == 0)
 		{
 			printf("%s: invalid argument\n", argv[i + 1]);
 			return (1);

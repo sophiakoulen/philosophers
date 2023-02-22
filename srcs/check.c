@@ -6,7 +6,7 @@
 /*   By: skoulen <skoulen@student.42lausanne.ch>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/20 12:11:37 by skoulen           #+#    #+#             */
-/*   Updated: 2023/02/20 14:57:22 by skoulen          ###   ########.fr       */
+/*   Updated: 2023/02/22 12:04:15 by skoulen          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,7 @@ void	watch_philos(int *params, t_philo *philos, t_protected *stop)
 			if (has_starved_to_death(philos + i, params[PH_ARG_TDIE]))
 			{
 				continue_loop = 0;
-				log_action(PH_ACTION_DIE, i, philos->ts_birth);
+				log_action(PH_ACTION_DIE, i, philos->birth);
 				break ;
 			}
 			if (is_still_hungry(philos + i, params[PH_ARG_XEAT]))
@@ -46,9 +46,9 @@ void	watch_philos(int *params, t_philo *philos, t_protected *stop)
 			i++;
 		}
 	}
-	pthread_mutex_lock(stop->lock);
+	pthread_mutex_lock(&stop->lock);
 	*stop->value = 1;
-	pthread_mutex_unlock(stop->lock);
+	pthread_mutex_unlock(&stop->lock);
 }
 
 /*
@@ -59,9 +59,9 @@ static int	has_starved_to_death(t_philo *philo, int t_to_die)
 {
 	int	ret;
 
-	pthread_mutex_lock(philo->locks->last_meal + philo->i);
-	ret = ts_now() - philo->ts_last_meal > t_to_die;
-	pthread_mutex_unlock(philo->locks->last_meal + philo->i);
+	pthread_mutex_lock(&philo->last_meal->lock);
+	ret = ts_now() - *philo->last_meal->value > t_to_die;
+	pthread_mutex_unlock(&philo->last_meal->lock);
 	return (ret);
 }
 
@@ -75,8 +75,8 @@ static int	is_still_hungry(t_philo *philo, int x_eat)
 
 	if (x_eat == -1)
 		return (1);
-	pthread_mutex_lock(philo->locks->meal_count + philo->i);
-	ret = philo->meal_count < x_eat;
-	pthread_mutex_unlock(philo->locks->meal_count + philo->i);
+	pthread_mutex_lock(&philo->meal_count->lock);
+	ret = *philo->meal_count->value < x_eat;
+	pthread_mutex_unlock(&philo->meal_count->lock);
 	return (ret);
 }

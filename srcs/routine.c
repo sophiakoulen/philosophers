@@ -6,7 +6,7 @@
 /*   By: skoulen <skoulen@student.42lausanne.ch>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/06 12:35:46 by skoulen           #+#    #+#             */
-/*   Updated: 2023/02/21 14:08:14 by skoulen          ###   ########.fr       */
+/*   Updated: 2023/02/22 14:15:48 by skoulen          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,7 @@ void	*routine(t_philo *args)
 	int	ts_stop_action;
 	int	next_action;
 
-	ts_stop_action = args->ts_birth;
+	ts_stop_action = args->birth;
 	next_action = PH_ACTION_EAT;
 	while (simulation_continues(args))
 	{
@@ -45,7 +45,7 @@ void	*routine(t_philo *args)
 		else if (next_action == PH_ACTION_SLEEP)
 			go_to_sleep(args, &ts_stop_action);
 		else
-			log_action(PH_ACTION_THINK, args->i, args->ts_birth);
+			log_action(PH_ACTION_THINK, args->i, args->birth);
 		next_action = (next_action + 1) % 4;
 	}
 	unlock_all(args, next_action);
@@ -67,51 +67,42 @@ void	*routine(t_philo *args)
 */
 static void	eat(t_philo *args, int *ts_stop_action)
 {
-	int	i;
-	int	n;
-
-	i = args->i;
-	n = args->params[PH_ARG_N];
-	if (n != 1)
+	if (args->params[PH_ARG_N] != 1)
 	{
-		pthread_mutex_lock(args->locks->forks + first_index(i, n));
+		pthread_mutex_lock(args->fork1);
 		if (simulation_continues(args))
-			log_action(PH_ACTION_FORK, i, args->ts_birth);
-		pthread_mutex_lock(args->locks->forks + second_index(i, n));
+			log_action(PH_ACTION_FORK, args->i, args->birth);
+		pthread_mutex_lock(args->fork2);
 		if (simulation_continues(args))
-			log_action(PH_ACTION_FORK, i, args->ts_birth);
+			log_action(PH_ACTION_FORK, args->i, args->birth);
 		if (simulation_continues(args))
-			log_action(PH_ACTION_EAT, i, args->ts_birth);
-		pthread_mutex_lock(args->locks->last_meal + i);
-		args->ts_last_meal = ts_now();
-		pthread_mutex_unlock(args->locks->last_meal + i);
+			log_action(PH_ACTION_EAT, args->i, args->birth);
+		pthread_mutex_lock(&args->last_meal->lock);
+		*args->last_meal->value = ts_now();
+		pthread_mutex_unlock(&args->last_meal->lock);
 		*ts_stop_action = ts_now() + args->params[PH_ARG_TEAT];
 	}
 	else
 	{
-		log_action(PH_ACTION_FORK, i, args->ts_birth);
+		log_action(PH_ACTION_FORK, args->i, args->birth);
 		*ts_stop_action = 2147483647;
 	}
 }
 
 /*
-	Increase the meal counter. Unlock both forks we used to eat.
-	log the fact that we are sleeping. set the time of finish to now +
-	time_to_sleep.
+	Increase the meal counter.
+	Unlock both forks we used to eat.
+	log the fact that we are sleeping.
+	set the time of finish to now + time_to_sleep.
 */
 static void	go_to_sleep(t_philo *args, int *ts_stop_action)
 {
-	int	i;
-	int	n;
-
-	i = args->i;
-	n = args->params[PH_ARG_N];
-	pthread_mutex_lock(args->locks->meal_count + i);
-	args->meal_count++;
-	pthread_mutex_unlock(args->locks->meal_count + i);
-	pthread_mutex_unlock(args->locks->forks + first_index(i, n));
-	pthread_mutex_unlock(args->locks->forks + second_index(i, n));
-	log_action(PH_ACTION_SLEEP, i, args->ts_birth);
+	pthread_mutex_lock(&args->meal_count->lock);
+	(*args->meal_count->value)++;
+	pthread_mutex_unlock(&args->meal_count->lock);
+	pthread_mutex_unlock(args->fork1);
+	pthread_mutex_unlock(args->fork2);
+	log_action(PH_ACTION_SLEEP, args->i, args->birth);
 	*ts_stop_action = ts_now() + args->params[PH_ARG_TSLEEP];
 }
 
@@ -123,9 +114,9 @@ static int	simulation_continues(t_philo *args)
 {
 	int	ret;
 
-	pthread_mutex_lock(args->stop->lock);
-	ret = !*args->stop->value;
-	pthread_mutex_unlock(args->stop->lock);
+	pthread_mutex_lock(&args->stop->lock);
+	ret = !*(args->stop->value);
+	pthread_mutex_unlock(&args->stop->lock);
 	return (ret);
 }
 
@@ -134,14 +125,9 @@ static int	simulation_continues(t_philo *args)
 */
 static void	unlock_all(t_philo *args, int next_action)
 {
-	int	i;
-	int	n;
-
-	i = args->i;
-	n = args->params[PH_ARG_N];
-	if (next_action == PH_ACTION_SLEEP && n != 1)
+	if (next_action == PH_ACTION_SLEEP && args->params[PH_ARG_N] != 1)
 	{
-		pthread_mutex_unlock(args->locks->forks + first_index(i, n));
-		pthread_mutex_unlock(args->locks->forks + second_index(i, n));
+		pthread_mutex_unlock(args->fork1);
+		pthread_mutex_unlock(args->fork2);
 	}
 }

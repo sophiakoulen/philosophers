@@ -6,7 +6,7 @@
 /*   By: skoulen <skoulen@student.42lausanne.ch>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/20 13:39:04 by skoulen           #+#    #+#             */
-/*   Updated: 2023/02/21 13:53:28 by skoulen          ###   ########.fr       */
+/*   Updated: 2023/02/22 12:00:41 by skoulen          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,51 +44,52 @@
 typedef struct s_protected
 {
 	int				*value;
-	pthread_mutex_t	*lock;
+	pthread_mutex_t	lock;
 }	t_protected;
 
 typedef struct s_philo
 {
 	int				i;
 	int				*params;
-	int				ts_birth;
-	int				ts_last_meal;
-	int				meal_count;
+	int				birth;
+	t_protected		*last_meal;
+	t_protected		*meal_count;
 	t_protected		*stop;
-	struct s_locks	*locks;
+	pthread_mutex_t	*fork1;
+	pthread_mutex_t	*fork2;
 }	t_philo;
 
 struct s_locks
 {
 	pthread_mutex_t	*forks;
-	pthread_mutex_t	*last_meal;
-	pthread_mutex_t	*meal_count;
-	pthread_mutex_t	*stop;
+	t_protected		*last_meal;
+	t_protected		*meal_count;
+	t_protected		stop;
 } ;
 
 /* parsing.c */
 
-int				parsing(int argc, char **argv, int *params);
+int		parsing(int argc, char **argv, int *params);
 
 /* routine.c */
 
-void			*routine(t_philo *args);
+void	*routine(t_philo *args);
 
 /* utils.c */
 
-void			log_action(int action, int i, int ts_birth);
-int				ts_now(void);
-int				next_index(int i, int n);
-int				first_index(int i, int n);
-int				second_index(int i, int n);
+void	log_action(int action, int i, int ts_birth);
+int		ts_now(void);
+int		next_index(int i, int n);
+int		first_index(int i, int n);
+int		second_index(int i, int n);
 
 /* check.c */
 
-void			watch_philos(int *params, t_philo *philos, t_protected *stop);
+void	watch_philos(int *params, t_philo *philos, t_protected *stop);
 
 /* init.c */
 
-struct s_philo	*init_philos(int *params, t_protected *stop);
-int				init_stop_lock(t_protected *stop);
+int		init_philos(int *params, struct s_locks *locks, t_philo **philos);
+int		init_locks(int n, struct s_locks *locks);
 
 #endif
