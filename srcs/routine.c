@@ -6,7 +6,7 @@
 /*   By: skoulen <skoulen@student.42lausanne.ch>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/06 12:35:46 by skoulen           #+#    #+#             */
-/*   Updated: 2023/02/24 16:23:50 by skoulen          ###   ########.fr       */
+/*   Updated: 2023/02/24 16:31:59 by skoulen          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,6 +35,8 @@ void	*routine(t_philo *args)
 
 	ts_stop_action = args->birth;
 	next_action = PH_ACTION_EAT;
+	if (args->i % 2)
+		usleep(100);
 	while (simulation_continues(args->stop))
 	{
 		if (ts_stop_action > ts_now())
@@ -70,7 +72,7 @@ static void	eat(t_philo *args, int *ts_stop_action)
 	{
 		pthread_mutex_lock(args->fork1);
 		if (simulation_continues(args->stop))
-		log_action(PH_ACTION_FORK, args->i, args->birth);
+			log_action(PH_ACTION_FORK, args->i, args->birth);
 		pthread_mutex_lock(args->fork2);
 		if (simulation_continues(args->stop))
 			log_action(PH_ACTION_FORK, args->i, args->birth);
