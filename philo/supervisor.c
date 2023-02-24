@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   check.c                                            :+:      :+:    :+:   */
+/*   supervisor.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: skoulen <skoulen@student.42lausanne.ch>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/20 12:11:37 by skoulen           #+#    #+#             */
-/*   Updated: 2023/02/24 16:47:37 by skoulen          ###   ########.fr       */
+/*   Updated: 2023/02/24 17:51:33 by skoulen          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,7 @@ void	watch_philos(int *params, t_philo *philos, t_protected *stop)
 			if (has_starved_to_death(philos + i, params[PH_ARG_TDIE]))
 			{
 				continue_loop = 0;
-				log_action(PH_ACTION_DIE, i, philos->birth, philos->print_lock);
+				log_action(PH_ACTION_DIE, &philos[i]);
 				break ;
 			}
 			if (is_still_hungry(philos + i, params[PH_ARG_XEAT]))

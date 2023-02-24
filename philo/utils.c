@@ -6,13 +6,13 @@
 /*   By: skoulen <skoulen@student.42lausanne.ch>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/18 11:49:32 by skoulen           #+#    #+#             */
-/*   Updated: 2023/02/24 17:06:29 by skoulen          ###   ########.fr       */
+/*   Updated: 2023/02/24 17:50:25 by skoulen          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
 
-void	log_action(int action, int i, int ts_birth, pthread_mutex_t *m)
+void	log_action(int action, t_philo *args)
 {
 	const char	*msg;
 
@@ -27,9 +27,10 @@ void	log_action(int action, int i, int ts_birth, pthread_mutex_t *m)
 		msg = "is thinking";
 	else if (action == PH_ACTION_DIE)
 		msg = "has died";
-	pthread_mutex_lock(m);
-	printf("%dms:\tphilo nr. %d %s\n", ts_now() - ts_birth, i + 1, msg);
-	pthread_mutex_unlock(m);
+	pthread_mutex_lock(args->print_lock);
+	if (!get_val(args->stop))
+		printf("%dms: philo %d %s\n", ts_now() - args->birth, args->i + 1, msg);
+	pthread_mutex_unlock(args->print_lock);
 }
 
 int	ts_now(void)

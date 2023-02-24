@@ -6,7 +6,7 @@
 /*   By: skoulen <skoulen@student.42lausanne.ch>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/20 13:39:04 by skoulen           #+#    #+#             */
-/*   Updated: 2023/02/24 17:42:14 by skoulen          ###   ########.fr       */
+/*   Updated: 2023/02/24 17:48:29 by skoulen          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,7 +79,7 @@ void	*routine(t_philo *args);
 
 /* utils.c */
 
-void	log_action(int action, int i, int ts_birth, pthread_mutex_t *m);
+void	log_action(int action, t_philo *args);
 int		ts_now(void);
 int		next_index(int i, int n);
 int		get_val(t_protected *var);

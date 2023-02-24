@@ -6,7 +6,7 @@
 /*   By: skoulen <skoulen@student.42lausanne.ch>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/06 12:35:46 by skoulen           #+#    #+#             */
-/*   Updated: 2023/02/24 17:34:17 by skoulen          ###   ########.fr       */
+/*   Updated: 2023/02/24 17:55:37 by skoulen          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,7 +46,7 @@ void	*routine(t_philo *args)
 		else if (next_action == PH_ACTION_SLEEP)
 			go_to_sleep(args, &ts_stop_action);
 		else
-			log_action(PH_ACTION_THINK, args->i, args->birth, args->print_lock);
+			log_action(PH_ACTION_THINK, args);
 		next_action = (next_action + 1) % 3;
 	}
 	unlock_all(args, next_action);
@@ -72,18 +72,18 @@ static void	eat(t_philo *args, int *ts_stop_action)
 	{
 		pthread_mutex_lock(args->fork1);
 		if (!get_val(args->stop))
-			log_action(PH_ACTION_FORK, args->i, args->birth, args->print_lock);
+			log_action(PH_ACTION_FORK, args);
 		pthread_mutex_lock(args->fork2);
 		if (!get_val(args->stop))
-			log_action(PH_ACTION_FORK, args->i, args->birth, args->print_lock);
+			log_action(PH_ACTION_FORK, args);
 		if (!get_val(args->stop))
-			log_action(PH_ACTION_EAT, args->i, args->birth, args->print_lock);
+			log_action(PH_ACTION_EAT, args);
 		set_val(args->last_meal, ts_now());
 		*ts_stop_action = ts_now() + args->params[PH_ARG_TEAT];
 	}
 	else
 	{
-		log_action(PH_ACTION_FORK, args->i, args->birth, args->print_lock);
+		log_action(PH_ACTION_FORK, args);
 		*ts_stop_action = 2147483647;
 	}
 }
@@ -101,7 +101,7 @@ static void	go_to_sleep(t_philo *args, int *ts_stop_action)
 	pthread_mutex_unlock(&args->meal_count->lock);
 	pthread_mutex_unlock(args->fork1);
 	pthread_mutex_unlock(args->fork2);
-	log_action(PH_ACTION_SLEEP, args->i, args->birth, args->print_lock);
+	log_action(PH_ACTION_SLEEP, args);
 	*ts_stop_action = ts_now() + args->params[PH_ARG_TSLEEP];
 }
 
