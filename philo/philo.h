@@ -6,7 +6,7 @@
 /*   By: skoulen <skoulen@student.42lausanne.ch>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/20 13:39:04 by skoulen           #+#    #+#             */
-/*   Updated: 2023/02/24 17:12:53 by skoulen          ###   ########.fr       */
+/*   Updated: 2023/02/24 17:42:14 by skoulen          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,10 +40,6 @@
 # define PH_ACTION_THINK 2
 # define PH_ACTION_DIE 3
 # define PH_ACTION_FORK 4
-
-/* states a philo can be in */
-# define PH_STATE_ONE_FORK 42
-# define PH_STATE_OTHER 0
 
 typedef struct s_protected
 {
