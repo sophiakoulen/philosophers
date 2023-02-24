@@ -6,7 +6,7 @@
 /*   By: skoulen <skoulen@student.42lausanne.ch>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/20 13:39:04 by skoulen           #+#    #+#             */
-/*   Updated: 2023/02/22 12:00:41 by skoulen          ###   ########.fr       */
+/*   Updated: 2023/02/24 15:26:38 by skoulen          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,12 +34,16 @@
 # define PH_ARG_TSLEEP 3
 # define PH_ARG_XEAT 4
 
-/* actions */
+/* actions that need to be logged */
 # define PH_ACTION_EAT 0
 # define PH_ACTION_SLEEP 1
 # define PH_ACTION_THINK 2
 # define PH_ACTION_DIE 3
 # define PH_ACTION_FORK 4
+
+/* states a philo can be in */
+# define PH_STATE_ONE_FORK 42
+# define PH_STATE_OTHER 0
 
 typedef struct s_protected
 {
@@ -55,6 +59,8 @@ typedef struct s_philo
 	t_protected		*last_meal;
 	t_protected		*meal_count;
 	t_protected		*stop;
+	t_protected		*deadlock;
+	t_protected		*state;
 	pthread_mutex_t	*fork1;
 	pthread_mutex_t	*fork2;
 }	t_philo;
@@ -64,7 +70,9 @@ struct s_locks
 	pthread_mutex_t	*forks;
 	t_protected		*last_meal;
 	t_protected		*meal_count;
+	t_protected		*state;
 	t_protected		stop;
+	t_protected		deadlock;
 } ;
 
 /* parsing.c */
@@ -82,10 +90,13 @@ int		ts_now(void);
 int		next_index(int i, int n);
 int		first_index(int i, int n);
 int		second_index(int i, int n);
+int		simulation_continues(t_protected *stop);
+int		get_val(t_protected *var);
+void	set_val(t_protected *var, int val);
 
 /* check.c */
 
-void	watch_philos(int *params, t_philo *philos, t_protected *stop);
+void	watch_philos(int *params, t_philo *philos, t_protected *stop, t_protected *deadlock);
 
 /* init.c */
 

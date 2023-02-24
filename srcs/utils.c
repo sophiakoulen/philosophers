@@ -6,7 +6,7 @@
 /*   By: skoulen <skoulen@student.42lausanne.ch>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/18 11:49:32 by skoulen           #+#    #+#             */
-/*   Updated: 2023/02/20 13:53:15 by skoulen          ###   ########.fr       */
+/*   Updated: 2023/02/24 12:43:47 by skoulen          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,6 +48,7 @@ int	next_index(int i, int n)
 
 int	first_index(int i, int n)
 {
+	/*
 	if (i % 2)
 	{
 		return (i);
@@ -56,10 +57,14 @@ int	first_index(int i, int n)
 	{
 		return (next_index(i, n));
 	}
+	*/
+	(void)n;
+	return (i);
 }
 
 int	second_index(int i, int n)
 {
+	/*
 	if (i % 2)
 	{
 		return (next_index(i, n));
@@ -68,4 +73,38 @@ int	second_index(int i, int n)
 	{
 		return (i);
 	}
+	*/
+	(void)n;
+	return (next_index(i, n));
+}
+
+/*
+	Safely check if the main thread has communicated that the simulation
+	must end.
+*/
+int	simulation_continues(t_protected *stop)
+{
+	int	ret;
+
+	pthread_mutex_lock(&stop->lock);
+	ret = !*(stop->value);
+	pthread_mutex_unlock(&stop->lock);
+	return (ret);
+}
+
+int	get_val(t_protected *var)
+{
+	int	ret;
+
+	pthread_mutex_lock(&var->lock);
+	ret = *var->value;
+	pthread_mutex_unlock(&var->lock);
+	return (ret);
+}
+
+void	set_val(t_protected *var, int val)
+{
+	pthread_mutex_lock(&var->lock);
+	*var->value = val;
+	pthread_mutex_unlock(&var->lock);
 }

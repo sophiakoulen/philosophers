@@ -6,7 +6,7 @@
 /*   By: skoulen <skoulen@student.42lausanne.ch>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/06 12:35:46 by skoulen           #+#    #+#             */
-/*   Updated: 2023/02/22 17:10:33 by skoulen          ###   ########.fr       */
+/*   Updated: 2023/02/24 15:26:22 by skoulen          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,8 +14,8 @@
 
 static void	eat(t_philo *args, int *ts_stop_action);
 static void	go_to_sleep(t_philo *args, int *ts_stop_action);
-static int	simulation_continues(t_philo *args);
 static void	unlock_all(t_philo *args, int next_action);
+static void	get_fork1(t_philo *args);
 
 /*
 	The philosophers life cycle implemented as a thread routine:
@@ -35,8 +35,10 @@ void	*routine(t_philo *args)
 	int	next_action;
 
 	ts_stop_action = args->birth;
+
+	set_val(args->state, PH_STATE_OTHER);
 	next_action = PH_ACTION_EAT;
-	while (simulation_continues(args))
+	while (simulation_continues(args->stop))
 	{
 		if (ts_stop_action > ts_now())
 			continue ;
@@ -69,13 +71,14 @@ static void	eat(t_philo *args, int *ts_stop_action)
 {
 	if (args->params[PH_ARG_N] != 1)
 	{
-		pthread_mutex_lock(args->fork1);
-		if (simulation_continues(args))
-			log_action(PH_ACTION_FORK, args->i, args->birth);
+		get_fork1(args);
 		pthread_mutex_lock(args->fork2);
-		if (simulation_continues(args))
+		if (simulation_continues(args->stop))
 			log_action(PH_ACTION_FORK, args->i, args->birth);
-		if (simulation_continues(args))
+
+		set_val(args->state, PH_STATE_OTHER);
+
+		if (simulation_continues(args->stop))
 			log_action(PH_ACTION_EAT, args->i, args->birth);
 		pthread_mutex_lock(&args->last_meal->lock);
 		*args->last_meal->value = ts_now();
@@ -87,6 +90,23 @@ static void	eat(t_philo *args, int *ts_stop_action)
 		log_action(PH_ACTION_FORK, args->i, args->birth);
 		*ts_stop_action = 2147483647;
 	}
+}
+
+static void	get_fork1(t_philo *args)
+{
+	while (1)
+	{
+		pthread_mutex_lock(args->fork1);
+		set_val(args->state, PH_STATE_ONE_FORK);
+		usleep(1000);
+		if (args->i != 0 || !get_val(args->deadlock))
+			break ;
+		pthread_mutex_unlock(args->fork1);
+		set_val(args->state, PH_STATE_OTHER);
+		usleep(20000);
+	}
+	if (simulation_continues(args->stop))
+		log_action(PH_ACTION_FORK, args->i, args->birth);
 }
 
 /*
@@ -104,20 +124,6 @@ static void	go_to_sleep(t_philo *args, int *ts_stop_action)
 	pthread_mutex_unlock(args->fork2);
 	log_action(PH_ACTION_SLEEP, args->i, args->birth);
 	*ts_stop_action = ts_now() + args->params[PH_ARG_TSLEEP];
-}
-
-/*
-	Safely check if the main thread has communicated that the simulation
-	must end.
-*/
-static int	simulation_continues(t_philo *args)
-{
-	int	ret;
-
-	pthread_mutex_lock(&args->stop->lock);
-	ret = !*(args->stop->value);
-	pthread_mutex_unlock(&args->stop->lock);
-	return (ret);
 }
 
 /*
