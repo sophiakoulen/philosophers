@@ -6,7 +6,7 @@
 /*   By: skoulen <skoulen@student.42lausanne.ch>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/20 13:39:04 by skoulen           #+#    #+#             */
-/*   Updated: 2023/02/24 15:26:38 by skoulen          ###   ########.fr       */
+/*   Updated: 2023/02/24 16:20:32 by skoulen          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,8 +59,6 @@ typedef struct s_philo
 	t_protected		*last_meal;
 	t_protected		*meal_count;
 	t_protected		*stop;
-	t_protected		*deadlock;
-	t_protected		*state;
 	pthread_mutex_t	*fork1;
 	pthread_mutex_t	*fork2;
 }	t_philo;
@@ -70,9 +68,7 @@ struct s_locks
 	pthread_mutex_t	*forks;
 	t_protected		*last_meal;
 	t_protected		*meal_count;
-	t_protected		*state;
 	t_protected		stop;
-	t_protected		deadlock;
 } ;
 
 /* parsing.c */
@@ -96,7 +92,7 @@ void	set_val(t_protected *var, int val);
 
 /* check.c */
 
-void	watch_philos(int *params, t_philo *philos, t_protected *stop, t_protected *deadlock);
+void	watch_philos(int *params, t_philo *philos, t_protected *stop);
 
 /* init.c */
 

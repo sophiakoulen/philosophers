@@ -6,7 +6,7 @@
 /*   By: skoulen <skoulen@student.42lausanne.ch>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/06 12:18:20 by skoulen           #+#    #+#             */
-/*   Updated: 2023/02/24 15:21:45 by skoulen          ###   ########.fr       */
+/*   Updated: 2023/02/24 16:24:28 by skoulen          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,7 @@ int	main(int argc, char **argv)
 		return (3);
 	if (spawn_philos(philosophers, params, &threads) != 0)
 		return (4);
-	watch_philos(params, philosophers, &locks.stop, &locks.deadlock);
+	watch_philos(params, philosophers, &locks.stop);
 	if (join_and_cleanup_threads(params[PH_ARG_N], threads) != 0)
 		return (5);
 	if (cleanup_mutexes(params[PH_ARG_N], &locks) != 0)
@@ -57,7 +57,6 @@ static int	spawn_philos(t_philo *philos, int *params, pthread_t **threads)
 			printf("Could not create thread\n");
 			return (-1);
 		}
-		usleep(100);
 		i++;
 	}
 	return (0);
@@ -78,9 +77,6 @@ static int	cleanup_mutexes(int n, struct s_locks *locks)
 		if (safe_mutex_destroy(&locks->meal_count[i].lock) != 0)
 			return (-1);
 		free(locks->meal_count[i].value);
-		if (safe_mutex_destroy(&locks->state[i].lock) != 0)
-			return (-1);
-		free(locks->state[i].value);
 		i++;
 	}
 	free(locks->forks);
@@ -88,8 +84,6 @@ static int	cleanup_mutexes(int n, struct s_locks *locks)
 	free(locks->meal_count);
 	safe_mutex_destroy(&locks->stop.lock);
 	free(locks->stop.value);
-	safe_mutex_destroy(&locks->deadlock.lock);
-	free(locks->deadlock.value);
 	return (0);
 }
 

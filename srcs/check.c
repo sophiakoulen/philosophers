@@ -6,7 +6,7 @@
 /*   By: skoulen <skoulen@student.42lausanne.ch>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/20 12:11:37 by skoulen           #+#    #+#             */
-/*   Updated: 2023/02/24 13:30:03 by skoulen          ###   ########.fr       */
+/*   Updated: 2023/02/24 16:21:04 by skoulen          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,17 +23,15 @@ static int	is_still_hungry(t_philo *philo, int x_eat);
 	variable that all philosophers must stop.
 	The philosophers will regularly check that variable and die accordingly.
 */
-void	watch_philos(int *params, t_philo *philos, t_protected *stop, t_protected *deadlock)
+void	watch_philos(int *params, t_philo *philos, t_protected *stop)
 {
 	int	continue_loop;
-	int	found_deadlock;
 	int	i;
 
 	continue_loop = 1;
 	while (continue_loop)
 	{
 		continue_loop = 0;
-		found_deadlock = 1;
 		i = 0;
 		while (i < params[PH_ARG_N])
 		{
@@ -45,13 +43,8 @@ void	watch_philos(int *params, t_philo *philos, t_protected *stop, t_protected *
 			}
 			if (is_still_hungry(philos + i, params[PH_ARG_XEAT]))
 				continue_loop = 1;
-
-			if (get_val(philos[i].state) != PH_STATE_ONE_FORK)
-				found_deadlock = 0;
-
 			i++;
 		}
-		set_val(deadlock, found_deadlock);
 	}
 	pthread_mutex_lock(&stop->lock);
 	*stop->value = 1;
