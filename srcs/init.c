@@ -6,7 +6,7 @@
 /*   By: skoulen <skoulen@student.42lausanne.ch>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/20 14:50:17 by skoulen           #+#    #+#             */
-/*   Updated: 2023/02/24 16:21:59 by skoulen          ###   ########.fr       */
+/*   Updated: 2023/02/24 16:49:33 by skoulen          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,7 @@ int	init_philos(int *params, struct s_locks *locks, t_philo **philos)
 		(*philos)[i].meal_count = &locks->meal_count[i];
 		*(*philos)[i].meal_count->value = 0;
 		(*philos)[i].stop = &locks->stop;
+		(*philos)[i].print_lock = &locks->print_lock;
 		(*philos)[i].fork1 = &locks->forks[first_index(i, params[PH_ARG_N])];
 		(*philos)[i].fork2 = &locks->forks[second_index(i, params[PH_ARG_N])];
 		i++;
@@ -62,6 +63,8 @@ int	init_locks(int n, struct s_locks *locks)
 	}
 	if (init_protected(&locks->stop, 0) != 0)
 		return (-1);
+	if (safe_mutex_init(&locks->print_lock) != 0)
+			return (-1);
 	return (0);
 }
 

@@ -16,10 +16,8 @@
 - ./philo 4 310 200 200 -1: invalid argument
 - ./philo 4 214748364732 200 200: invalid argument
 
-is this okay?
-- ./philo 3 1000 300 300  : 1 philo dies after 1000ms or 1300ms
-- ./philo 5 1000 300 300: 1 philo dies after 1000ms or 1300ms or 1600ms or 2200ms or later
-=> no! need to implement a system of priority
+- ./philo 3 1000 300 300: no philo dies
+- ./philo 5 1000 300 300: no philo dies
+- ./philo 7 1000 300 300: no philo dies
 
 - ./philo 3 1000 500 500: 1 philo dies after 1000ms
-- ./philo 7 1000 300 300: 1 philo dies after 1900ms

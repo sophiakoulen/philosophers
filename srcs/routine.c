@@ -6,7 +6,7 @@
 /*   By: skoulen <skoulen@student.42lausanne.ch>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/06 12:35:46 by skoulen           #+#    #+#             */
-/*   Updated: 2023/02/24 16:31:59 by skoulen          ###   ########.fr       */
+/*   Updated: 2023/02/24 16:46:50 by skoulen          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,7 +46,7 @@ void	*routine(t_philo *args)
 		else if (next_action == PH_ACTION_SLEEP)
 			go_to_sleep(args, &ts_stop_action);
 		else
-			log_action(PH_ACTION_THINK, args->i, args->birth);
+			log_action(PH_ACTION_THINK, args->i, args->birth, args->print_lock);
 		next_action = (next_action + 1) % 3;
 	}
 	unlock_all(args, next_action);
@@ -72,12 +72,12 @@ static void	eat(t_philo *args, int *ts_stop_action)
 	{
 		pthread_mutex_lock(args->fork1);
 		if (simulation_continues(args->stop))
-			log_action(PH_ACTION_FORK, args->i, args->birth);
+			log_action(PH_ACTION_FORK, args->i, args->birth, args->print_lock);
 		pthread_mutex_lock(args->fork2);
 		if (simulation_continues(args->stop))
-			log_action(PH_ACTION_FORK, args->i, args->birth);
+			log_action(PH_ACTION_FORK, args->i, args->birth, args->print_lock);
 		if (simulation_continues(args->stop))
-			log_action(PH_ACTION_EAT, args->i, args->birth);
+			log_action(PH_ACTION_EAT, args->i, args->birth, args->print_lock);
 		pthread_mutex_lock(&args->last_meal->lock);
 		*args->last_meal->value = ts_now();
 		pthread_mutex_unlock(&args->last_meal->lock);
@@ -85,7 +85,7 @@ static void	eat(t_philo *args, int *ts_stop_action)
 	}
 	else
 	{
-		log_action(PH_ACTION_FORK, args->i, args->birth);
+		log_action(PH_ACTION_FORK, args->i, args->birth, args->print_lock);
 		*ts_stop_action = 2147483647;
 	}
 }
@@ -103,7 +103,7 @@ static void	go_to_sleep(t_philo *args, int *ts_stop_action)
 	pthread_mutex_unlock(&args->meal_count->lock);
 	pthread_mutex_unlock(args->fork1);
 	pthread_mutex_unlock(args->fork2);
-	log_action(PH_ACTION_SLEEP, args->i, args->birth);
+	log_action(PH_ACTION_SLEEP, args->i, args->birth, args->print_lock);
 	*ts_stop_action = ts_now() + args->params[PH_ARG_TSLEEP];
 }
 

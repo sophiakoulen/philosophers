@@ -6,7 +6,7 @@
 /*   By: skoulen <skoulen@student.42lausanne.ch>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/06 12:18:20 by skoulen           #+#    #+#             */
-/*   Updated: 2023/02/24 16:24:28 by skoulen          ###   ########.fr       */
+/*   Updated: 2023/02/24 16:50:51 by skoulen          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,6 +84,7 @@ static int	cleanup_mutexes(int n, struct s_locks *locks)
 	free(locks->meal_count);
 	safe_mutex_destroy(&locks->stop.lock);
 	free(locks->stop.value);
+	safe_mutex_destroy(&locks->print_lock);
 	return (0);
 }
 

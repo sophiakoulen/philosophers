@@ -6,7 +6,7 @@
 /*   By: skoulen <skoulen@student.42lausanne.ch>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/20 13:39:04 by skoulen           #+#    #+#             */
-/*   Updated: 2023/02/24 16:20:32 by skoulen          ###   ########.fr       */
+/*   Updated: 2023/02/24 16:49:23 by skoulen          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,6 +61,7 @@ typedef struct s_philo
 	t_protected		*stop;
 	pthread_mutex_t	*fork1;
 	pthread_mutex_t	*fork2;
+	pthread_mutex_t	*print_lock;
 }	t_philo;
 
 struct s_locks
@@ -69,6 +70,7 @@ struct s_locks
 	t_protected		*last_meal;
 	t_protected		*meal_count;
 	t_protected		stop;
+	pthread_mutex_t	print_lock;
 } ;
 
 /* parsing.c */
@@ -81,7 +83,7 @@ void	*routine(t_philo *args);
 
 /* utils.c */
 
-void	log_action(int action, int i, int ts_birth);
+void	log_action(int action, int i, int ts_birth, pthread_mutex_t *m);
 int		ts_now(void);
 int		next_index(int i, int n);
 int		first_index(int i, int n);
