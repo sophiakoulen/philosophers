@@ -6,7 +6,7 @@
 /*   By: skoulen <skoulen@student.42lausanne.ch>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/18 11:49:32 by skoulen           #+#    #+#             */
-/*   Updated: 2023/02/24 17:50:25 by skoulen          ###   ########.fr       */
+/*   Updated: 2023/02/27 10:05:38 by skoulen          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,6 +49,9 @@ int	next_index(int i, int n)
 		return (i + 1);
 }
 
+/*
+	wrapper for getting a value from a variable protected by a mutex
+*/
 int	get_val(t_protected *var)
 {
 	int	ret;
@@ -59,6 +62,9 @@ int	get_val(t_protected *var)
 	return (ret);
 }
 
+/*
+	wrapper for setting a variable protected by a mutex
+*/
 void	set_val(t_protected *var, int val)
 {
 	pthread_mutex_lock(&var->lock);
