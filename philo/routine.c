@@ -6,7 +6,7 @@
 /*   By: skoulen <skoulen@student.42lausanne.ch>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/06 12:35:46 by skoulen           #+#    #+#             */
-/*   Updated: 2023/02/24 17:55:37 by skoulen          ###   ########.fr       */
+/*   Updated: 2023/02/27 10:00:04 by skoulen          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,7 +84,7 @@ static void	eat(t_philo *args, int *ts_stop_action)
 	else
 	{
 		log_action(PH_ACTION_FORK, args);
-		*ts_stop_action = 2147483647;
+		*ts_stop_action = INT_MAX;
 	}
 }
 
