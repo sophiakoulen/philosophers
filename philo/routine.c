@@ -6,7 +6,7 @@
 /*   By: skoulen <skoulen@student.42lausanne.ch>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/06 12:35:46 by skoulen           #+#    #+#             */
-/*   Updated: 2023/02/27 10:00:04 by skoulen          ###   ########.fr       */
+/*   Updated: 2023/02/27 10:02:58 by skoulen          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,8 +54,7 @@ void	*routine(t_philo *args)
 }
 
 /*
-	To avoid deadlocks, even philosophers will take first the fork on
-	their right and odd ones will take first the fork on their left.
+	Wait for the left fork mutex, then for the right fork mutex.
 
 	After acquiring the lock, we check wether another philosopher has died,
 	because then we must not log the actions.
@@ -75,9 +74,10 @@ static void	eat(t_philo *args, int *ts_stop_action)
 			log_action(PH_ACTION_FORK, args);
 		pthread_mutex_lock(args->fork2);
 		if (!get_val(args->stop))
+		{
 			log_action(PH_ACTION_FORK, args);
-		if (!get_val(args->stop))
 			log_action(PH_ACTION_EAT, args);
+		}
 		set_val(args->last_meal, ts_now());
 		*ts_stop_action = ts_now() + args->params[PH_ARG_TEAT];
 	}
