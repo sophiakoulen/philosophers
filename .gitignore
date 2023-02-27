@@ -1,3 +1,4 @@
 philo/objs
 *.dSYM
 philo/philo
+.vscode
